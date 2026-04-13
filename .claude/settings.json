@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "milla-jovovich-mempalace": {
+      "source": {
+        "source": "github",
+        "repo": "milla-jovovich/mempalace"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "mempalace@milla-jovovich-mempalace": true
+  }
+}
