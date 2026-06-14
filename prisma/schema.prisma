@@ -19,33 +19,73 @@ model User {
 }
 
 model Customer {
-  id         String   @id @default(cuid())
-  firstName  String
-  lastName   String
-  email      String?
-  phone      String?
-  address    String?
-  city       String?
-  postalCode String?
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  quotes     Quote[]
-  tours      Tour[]
+  id              String            @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  postalCode      String?
+  notes           String?
+  // Google Drive Ordner-ID für Fotos
+  driveFolder     String?
+  // HubSpot Kontakt-ID (für Sync)
+  hubspotId       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  quotes          Quote[]
+  tours           Tour[]
+  callHistory     CallHistory[]
+  objects         CustomerObject[]
+}
+
+// Objekte (Wohnungen/Häuser) pro Kunde
+model CustomerObject {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  description String
+  address     String?
+  floor       Int?
+  hasElevator Boolean  @default(false)
+  squareMeters Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tours       Tour[]
+}
+
+// Anruf-Historie (Sipgate CTI)
+model CallHistory {
+  id          String   @id @default(cuid())
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  phoneNumber String
+  direction   String   @default("INBOUND")
+  duration    Int?
+  callId      String?  @unique
+  aiSummary   String?
+  createdAt   DateTime @default(now())
 }
 
 model Quote {
-  id          String      @id @default(cuid())
-  quoteNumber String      @unique
-  status      String      @default("DRAFT")
-  customerId  String
-  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items       QuoteItem[]
-  totalAmount Float       @default(0)
-  notes       String?
-  validUntil  DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id               String      @id @default(cuid())
+  quoteNumber      String      @unique
+  status           String      @default("DRAFT")
+  customerId       String
+  customer         Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items            QuoteItem[]
+  totalAmount      Float       @default(0)
+  notes            String?
+  validUntil       DateTime?
+  // Lexoffice Rechnungs-ID (nach Erstellung)
+  lexofficeId      String?
+  // Bunq Zahlungs-ID
+  bunqPaymentId    String?
+  paidAt           DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 model QuoteItem {
@@ -60,20 +100,25 @@ model QuoteItem {
 }
 
 model Tour {
-  id         String         @id @default(cuid())
-  title      String
-  date       DateTime
-  startTime  String?
-  endTime    String?
-  customerId String?
-  customer   Customer?      @relation(fields: [customerId], references: [id])
-  address    String?
-  city       String?
-  notes      String?
-  status     String         @default("PLANNED")
-  employees  TourEmployee[]
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id               String         @id @default(cuid())
+  title            String
+  date             DateTime
+  startTime        String?
+  endTime          String?
+  customerId       String?
+  customer         Customer?      @relation(fields: [customerId], references: [id])
+  objectId         String?
+  object           CustomerObject? @relation(fields: [objectId], references: [id])
+  address          String?
+  city             String?
+  notes            String?
+  status           String         @default("PLANNED")
+  // Google Drive Ordner für Fotos dieser Tour
+  driveFolderBefore String?
+  driveFolderAfter  String?
+  employees        TourEmployee[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model TourEmployee {
