@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  name      String
+  password  String
+  role      String         @default("EMPLOYEE")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  tours     TourEmployee[]
+}
+
+model Customer {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  address    String?
+  city       String?
+  postalCode String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  quotes     Quote[]
+  tours      Tour[]
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  quoteNumber String      @unique
+  status      String      @default("DRAFT")
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items       QuoteItem[]
+  totalAmount Float       @default(0)
+  notes       String?
+  validUntil  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quoteId     String
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float
+  unit        String @default("Stk.")
+  unitPrice   Float
+  total       Float
+}
+
+model Tour {
+  id         String         @id @default(cuid())
+  title      String
+  date       DateTime
+  startTime  String?
+  endTime    String?
+  customerId String?
+  customer   Customer?      @relation(fields: [customerId], references: [id])
+  address    String?
+  city       String?
+  notes      String?
+  status     String         @default("PLANNED")
+  employees  TourEmployee[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model TourEmployee {
+  id     String @id @default(cuid())
+  tourId String
+  tour   Tour   @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([tourId, userId])
+}
